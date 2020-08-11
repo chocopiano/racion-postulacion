@@ -1,0 +1,161 @@
+<html>
+
+<head>
+    <style>
+        p {
+            color: navy;
+            text-transform: uppercase;
+        }
+    </style>
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.2.3/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.2.3/firebase-firestore.js"></script>
+
+    <script>
+        var config = {
+            apiKey: "AIzaSyArGiRgGd2MfE65_9sjE2QX49gt1sP0GmA",
+            authDomain: "racional-exam.firebaseapp.com",
+            databaseURL: "​https://racional-exam.firebaseio.com​",
+            projectId: "racional-exam",
+            storageBucket: "racional-exam.appspot.com",
+            messagingSenderId: "669314004725",
+            appId: "1:669314004725:web:48bd14a97d7db43c91f7bc"
+        }
+        firebase.initializeApp(config)
+        var firestore = firebase.firestore();
+        const docRef = firestore.doc("investmentEvolutions/user1")
+        let list1 = []
+        docRef.get().then(function(doc) {
+            doc.data().array.forEach(element => {
+                date = new Date(element.date.seconds * 1000);
+                list1.push([date, element.portfolioValue, element.contributions])
+            });
+            initialCon = doc.data().array[0].contributions
+            finalCont = doc.data().array[doc.data().array.length - 1].contributions
+            roi = (doc.data().array[doc.data().array.length - 1].portfolioValue - finalCont) / finalCont * 100
+            totalWin = doc.data().array[doc.data().array.length - 1].portfolioValue - finalCont
+            google.charts.load('current', {
+                packages: ['corechart', 'line']
+            });
+            google.charts.setOnLoadCallback(drawAxisTickColors);
+            google.charts.load('current', {
+                'packages': ['table'],
+                'callback': drawTable1
+            });
+            google.charts.setOnLoadCallback(
+                drawTable1);
+        })
+        getRealtimeUpdates = function() {
+            docRef.onSnapshot(function(doc) {
+                list1 = []
+                doc.data().array.forEach(element => {
+                    date = new Date(element.date.seconds * 1000);
+                    list1.push([date, element.portfolioValue, element.contributions])
+                });
+                initialCon = doc.data().array[0].contributions
+                finalCont = doc.data().array[doc.data().array.length - 1].contributions
+                roi = (doc.data().array[doc.data().array.length - 1].portfolioValue - finalCont) / finalCont * 100
+                totalWin = doc.data().array[doc.data().array.length - 1].portfolioValue - finalCont
+                google.charts.load('current', {
+                    packages: ['corechart', 'line']
+                });
+                google.charts.setOnLoadCallback(drawAxisTickColors);
+                google.charts.load('current', {
+                    'packages': ['table'],
+                    'callback': drawTable1
+                });
+                google.charts.setOnLoadCallback(
+                    drawTable1);
+            })
+        }
+
+        getRealtimeUpdates()
+    </script>
+</head>
+
+<body>
+    <div>
+        <p>-In the next graph you can see the information of your portfalio value (red curve) that is the money that you have at the time that your are seeing it. The green curve is all the money that you have contribuite until that time.<br/>-Finaly you
+            can find a table with general information</p>
+    </div>
+    <div id="chart_div"></div>
+    <div id="table_div2" class="myDiv" style="width: 900px; height: 50px"></div>
+    <script>
+        function drawAxisTickColors() {
+            var data = new google.visualization.DataTable();
+            data.addColumn('date', 'Day');
+            data.addColumn('number', "Portfolio Value");
+            data.addColumn('number', "Contribuitions");
+
+            data.addRows(list1)
+
+            var options = {
+
+                title: 'Portfolio Value and Contribuitions throughout the Year 2019',
+
+                width: 1250,
+                height: 700,
+
+                explorer: {
+                    maxZoomOut: 4,
+                    keepInBounds: true
+                },
+                annotations: {
+                    style: 'line'
+                },
+                hAxis: {
+                    title: 'Time',
+                    textStyle: {
+                        color: '#01579b',
+                        fontSize: 10,
+                        fontName: 'Arial',
+                        bold: true,
+                        italic: true
+                    },
+                    titleTextStyle: {
+                        color: '#01579b',
+                        fontSize: 24,
+                        fontName: 'Arial',
+                        bold: false,
+                        italic: true
+                    }
+                },
+                vAxis: {
+                    title: '$(Chilean Pesos)',
+                    textStyle: {
+                        color: '#1a237e',
+                        fontSize: 24,
+                        bold: true
+                    },
+                    titleTextStyle: {
+                        color: '#1a237e',
+                        fontSize: 24,
+                        bold: true
+                    }
+                },
+                colors: ['#a52714', '#097138']
+            };
+            var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+            chart.draw(data, options);
+        }
+
+        function drawTable1() {
+            var data = new google.visualization.DataTable();
+            data.addColumn('number', 'Initial Contribuitions ($)');
+            data.addColumn('number', 'Final Contribuitions ($)');
+            data.addColumn('number', '% of return of investment');
+            data.addColumn('number', 'Total Win ($)');
+            data.addRows([
+                [initialCon, finalCont, roi, totalWin]
+            ]);
+            var table = new google.visualization.Table(document.getElementById('table_div2'));
+            table.draw(data, {
+                showRowNumber: false,
+                width: '100%',
+                height: '100%'
+            });
+        }
+    </script>
+</body>
+
+</html>
